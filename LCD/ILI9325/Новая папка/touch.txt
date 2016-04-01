@@ -1,0 +1,34 @@
+'================================= TouchPad ====================================
+Clk_touch Alias Portf.1 : Config Clk_touch = Output         'XPT2046 Clock Pin
+Cs_touch Alias Portf.0 : Config Cs_touch = Output           'XPT2046 CS Pin
+Dout_touch Alias Portf.3 : Config Dout_touch = Output       'XPT2046 Din Pin
+Din_touch Alias Pinf.2 : Config Din_touch = Input           'XPT2046 Dout Pin
+Cs_touch = 1
+
+Config Pine.4 = Input : Porte.7 = 1                         'Pen Interrupt
+Config Int4 = Falling
+On Int4 Touch_int
+Enable Int4
+
+Dim Touch_flag As Bit
+Dim Touchx As Word , Touchy As Word
+Dim X_dout As Byte : X_dout = 208
+Dim Y_dout As Byte : Y_dout = 144
+
+
+'===============================================================================
+Sub Read_touch()
+Touchx = 0 : Touchy = 0 : Clk_touch = 0 : Cs_touch = 0
+Shiftout Dout_touch , Clk_touch , X_dout , 1 , 8 , 3        'X request
+   Waitms 3
+Shiftin Din_touch , Clk_touch , Touchy , 1 , 12 , 3         'X answer
+Shiftout Dout_touch , Clk_touch , Y_dout , 1 , 8 , 3        'Y Request
+   Waitms 3
+Shiftin Din_touch , Clk_touch , Touchx , 1 , 12 , 3         'Y answer
+Cs_touch = 1
+Touchy = Touchy / 115 : Touchy = Touchy - 21
+If Touchy > 239 Then Touchy = 239
+Touchx = Touchx / 88 : Touchx = Touchx - 27
+If Touchx > 319 Then Touchx = 319
+Touch_flag = 0
+End Sub
